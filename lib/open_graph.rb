@@ -1,4 +1,4 @@
-require 'nokogiri'
+require 'oga'
 require 'redirect_follower'
 require "addressable/uri"
 require 'uri'
@@ -35,8 +35,8 @@ class OpenGraph
 
     if @body
       attrs_list = %w(title url type description)
-      doc = Nokogiri.parse(@body)
-      doc.css('meta').each do |m|
+      doc = Oga.parse_html(@body)
+      doc.xpath('//meta').each do |m|
         if m.attribute('property') && m.attribute('property').to_s.match(/^og:(.+)$/i)
           m_content = m.attribute('content').to_s.strip
           metadata_name = m.attribute('property').to_s.gsub("og:", "")
@@ -54,7 +54,7 @@ class OpenGraph
 
   def load_fallback
     if @body
-      doc = Nokogiri.parse(@body)
+      doc = Oga.parse_html(@body)
 
       if @title.to_s.empty? && doc.xpath("//head//title").size > 0
         @title = doc.xpath("//head//title").first.text.to_s.strip
