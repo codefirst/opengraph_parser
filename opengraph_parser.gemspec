@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.email = "hhuy424@gmail.com"
   s.extra_rdoc_files = [
     "LICENSE.txt",
-    "README.rdoc"
+    "README.md"
   ]
   s.files = [
     "lib/open_graph.rb",
