@@ -35,7 +35,7 @@ class OpenGraph
 
     if @body
       attrs_list = %w(title url type description)
-      doc = Oga.parse_html(@body)
+      doc = parse_html(@body)
       doc.xpath('//meta').each do |m|
         if m.attribute('property') && m.attribute('property').to_s.match(/^og:(.+)$/i)
           m_content = m.attribute('content').to_s.strip
@@ -54,7 +54,7 @@ class OpenGraph
 
   def load_fallback
     if @body
-      doc = Oga.parse_html(@body)
+      doc = parse_html(@body)
 
       if @title.to_s.empty? && doc.xpath("//head//title").size > 0
         @title = doc.xpath("//head//title").first.text.to_s.strip
@@ -116,5 +116,27 @@ class OpenGraph
       metadata_container[path.to_sym] << {'_value'.to_sym => content}
       metadata_container
     end
+  end
+
+  def parse_html(body)
+     doc = Oga.parse_html(body)
+     encoding = guess_encoding(doc)
+     unless encoding == 'UTF-8'
+       doc = Oga.parse_html(body.encode('UTF-8', encoding))
+     end
+     doc
+  end
+
+  def guess_encoding(doc)
+    charset = doc.xpath('//meta/@charset').first
+    return charset.value.to_s if charset
+
+    charset = doc.xpath('//meta').each do |m|
+      if m.attribute('http-equiv') && m.attribute('content') && m.attribute('http-equiv').value.casecmp('Content-Type')
+        return m.attribute('content').value.split('charset=').last.strip
+      end
+    end
+
+    'UTF-8'
   end
 end

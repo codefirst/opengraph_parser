@@ -99,5 +99,26 @@ describe OpenGraph do
         og.images.should == ["http://test.host/images/rock1.jpg", "/images/rock2.jpg"]
       end
     end
+
+    context "with Shift_JIS" do
+      it "should get values from opengraph metadata" do
+        response = double(body: File.open("#{File.dirname(__FILE__)}/../view/shift_jis.html", 'r') { |f| f.read })
+        RedirectFollower.stub(:new) { double(resolve: response) }
+
+        og = OpenGraph.new("http://test.host", false)
+        og.src.should == "http://test.host"
+        og.title.should == "日本語"
+      end
+    end
+    context "with EUC-JP" do
+      it "should get values from opengraph metadata" do
+        response = double(body: File.open("#{File.dirname(__FILE__)}/../view/euc-jp.html", 'r') { |f| f.read })
+        RedirectFollower.stub(:new) { double(resolve: response) }
+
+        og = OpenGraph.new("http://test.host", false)
+        og.src.should == "http://test.host"
+        og.title.should == "日本語"
+      end
+    end
   end
 end
