@@ -1,4 +1,4 @@
-require 'oga'
+require 'nokogiri'
 require 'redirect_follower'
 require "addressable/uri"
 require 'uri'
@@ -119,10 +119,10 @@ class OpenGraph
   end
 
   def parse_html(body)
-     doc = Oga.parse_html(body)
+     doc = Nokogiri.parse(body.scrub)
      encoding = guess_encoding(doc)
      unless encoding == 'UTF-8'
-       doc = Oga.parse_html(body.encode('UTF-8', encoding))
+       doc = Nokogiri::HTML(body, nil, encoding)
      end
      doc
   end
