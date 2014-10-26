@@ -1,4 +1,5 @@
 require 'net/https'
+require "addressable/uri"
 
 class RedirectFollower
   REDIRECT_DEFAULT_LIMIT = 5
@@ -18,9 +19,9 @@ class RedirectFollower
   def resolve
     raise TooManyRedirects if redirect_limit < 0
 
-    uri = URI.parse(URI.escape(url))
+    uri = Addressable::URI.parse(url).normalize
 
-    http = Net::HTTP.new(uri.host, uri.port)
+    http = Net::HTTP.new(uri.host, uri.inferred_port)
     if uri.scheme == 'https'
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_PEER
