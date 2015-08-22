@@ -35,7 +35,19 @@ class RedirectFollower
       resolve
     end
 
-    self.body = response.body
+    charset = nil
+    if content_type = response['content-type']
+      if content_type =~ /charset=(.+)/i
+        charset = $1
+      end
+    end
+
+    if charset
+      self.body = response.body.force_encoding(charset).encode('utf-8')
+    else
+      self.body = response.body
+    end
+
     self
   end
 
