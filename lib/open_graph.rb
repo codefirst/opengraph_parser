@@ -13,6 +13,7 @@ class OpenGraph
     end
     @src = src
     @body = nil
+    @charset = 'utf-8'
     @images = []
     @metadata = {}
     parse_opengraph(options)
@@ -26,7 +27,9 @@ class OpenGraph
       if @src.include? '</html>'
         @body = @src
       else
-        @body = RedirectFollower.new(@src, options).resolve.body
+        resolved = RedirectFollower.new(@src, options).resolve
+        @body = resolved.body
+        @charset = resolved.charset
       end
     rescue
       @title = @url = @src
@@ -35,7 +38,7 @@ class OpenGraph
 
     if @body
       attrs_list = %w(title url type description)
-      doc = parse_html(@body)
+      doc = parse_html(@body, @charset)
       doc.xpath('//meta').each do |m|
         if m.attribute('property') && m.attribute('property').to_s.match(/^og:(.+)$/i)
           m_content = m.attribute('content').to_s.strip
@@ -54,7 +57,7 @@ class OpenGraph
 
   def load_fallback
     if @body
-      doc = parse_html(@body)
+      doc = parse_html(@body, @charset)
 
       if @title.to_s.empty? && doc.xpath("//head//title").size > 0
         @title = doc.xpath("//head//title").first.text.to_s.strip
@@ -118,25 +121,8 @@ class OpenGraph
     end
   end
 
-  def parse_html(body)
-     doc = Nokogiri.parse(body.scrub)
-     encoding = guess_encoding(doc)
-     unless encoding == 'UTF-8'
-       doc = Nokogiri::HTML(body, nil, encoding)
-     end
-     doc
+  def parse_html(body, charset)
+    Nokogiri::HTML(body, nil, charset)
   end
 
-  def guess_encoding(doc)
-    charset = doc.xpath('//meta/@charset').first
-    return charset.value.to_s if charset
-
-    charset = doc.xpath('//meta').each do |m|
-      if m.attribute('http-equiv') && m.attribute('content') && m.attribute('http-equiv').value.casecmp('Content-Type')
-        return m.attribute('content').value.split('charset=').last.strip
-      end
-    end
-
-    'UTF-8'
-  end
 end

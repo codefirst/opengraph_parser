@@ -5,7 +5,7 @@ class RedirectFollower
   REDIRECT_DEFAULT_LIMIT = 5
   class TooManyRedirects < StandardError; end
 
-  attr_accessor :url, :body, :redirect_limit, :response, :headers
+  attr_accessor :url, :body, :charset, :redirect_limit, :response, :headers
 
   def initialize(url, limit = REDIRECT_DEFAULT_LIMIT, options = {})
     if limit.is_a? Hash
@@ -35,18 +35,15 @@ class RedirectFollower
       resolve
     end
 
-    charset = nil
+    charset = 'utf-8'
     if content_type = response['content-type']
       if content_type =~ /charset=(.+)/i
         charset = $1
       end
     end
+    self.charset = charset
 
-    if charset
-      self.body = response.body.force_encoding(charset).encode('utf-8')
-    else
-      self.body = response.body
-    end
+    self.body = response.body
 
     self
   end
