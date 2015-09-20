@@ -35,7 +35,7 @@ class RedirectFollower
       resolve
     end
 
-    charset = 'utf-8'
+    charset = nil
     if content_type = response['content-type']
       if content_type =~ /charset=(.+)/i
         charset = $1

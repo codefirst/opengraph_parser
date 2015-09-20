@@ -122,7 +122,24 @@ class OpenGraph
   end
 
   def parse_html(body, charset)
+    unless charset
+      doc = Nokogiri.parse(body.scrub)
+      charset = guess_encoding(doc)
+    end
     Nokogiri::HTML(body, nil, charset)
+  end
+
+  def guess_encoding(doc)
+    charset = doc.xpath('//meta/@charset').first
+    return charset.value.to_s if charset
+
+    charset = doc.xpath('//meta').each do |m|
+      if m.attribute('http-equiv') && m.attribute('content') && m.attribute('http-equiv').value.casecmp('Content-Type')
+        return m.attribute('content').value.split('charset=').last.strip
+      end
+    end
+
+    'UTF-8'
   end
 
 end
